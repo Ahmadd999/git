@@ -289,4 +289,23 @@ test_expect_success 'http paths can be part of context' '
 	EOF
 '
 
+test_expect_success 'helpers can abort the process' '
+	test_must_fail git \
+		-c credential.helper="!f() { echo quit=1; }; f" \
+		-c credential.helper="verbatim foo bar" \
+		credential fill >stdout &&
+	test_must_be_empty stdout
+'
+
+test_expect_success 'empty helper spec resets helper list' '
+	test_config credential.helper "verbatim file file" &&
+	check fill "" "verbatim cmdline cmdline" <<-\EOF
+	--
+	username=cmdline
+	password=cmdline
+	--
+	verbatim: get
+	EOF
+'
+
 test_done
